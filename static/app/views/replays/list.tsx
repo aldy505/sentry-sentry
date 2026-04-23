@@ -39,24 +39,13 @@ import {ReplayIndexTimestampPrefPicker} from 'sentry/views/replays/list/replayIn
 import {ReplayListControls} from 'sentry/views/replays/list/replayListControls';
 import {ReplayOnboardingPanel} from 'sentry/views/replays/list/replayOnboardingPanel';
 import {ReplayQueryParamsProvider} from 'sentry/views/replays/list/replayQueryParamsProvider';
-import {ReplayWidgetsToggleButton} from 'sentry/views/replays/list/replayWidgetsToggleButton';
 
 const ReplayListPageHeaderHook = HookOrDefault({
   hookName: 'component:replay-list-page-header',
   defaultComponent: ({children}) => <Fragment>{children}</Fragment>,
 });
 
-interface ReplaysHeaderProps {
-  onToggleWidgets: () => void;
-  showDeadRageClickCards: boolean;
-  widgetIsOpen: boolean;
-}
-
-function ReplaysHeader({
-  onToggleWidgets,
-  showDeadRageClickCards,
-  widgetIsOpen,
-}: ReplaysHeaderProps) {
+function ReplaysHeader() {
   const pageId = useQueryParamsId();
   const title = useQueryParamsTitle();
   const organization = useOrganization();
@@ -65,6 +54,43 @@ function ReplaysHeader({
 
   const hasSavedQueryTitle =
     defined(pageId) && defined(savedQuery) && savedQuery.name.length > 0;
+
+  const titleContent = title ? (
+    title
+  ) : (
+    <Fragment>
+      {t('Session Replay')}
+      <PageHeadingQuestionTooltip
+        title={t(
+          'Video-like reproductions of user sessions so you can visualize repro steps to debug issues faster.'
+        )}
+        docsUrl="https://docs.sentry.io/product/session-replay/"
+      />
+    </Fragment>
+  );
+
+  if (hasPageFrameFeature) {
+    return (
+      <Fragment>
+        {hasSavedQueryTitle ? (
+          <SentryDocumentTitle
+            title={`${savedQuery.name} — ${t('Session Replay')}`}
+            orgSlug={organization?.slug}
+          />
+        ) : null}
+        <TopBar.Slot name="title">
+          {title && defined(pageId) ? (
+            <ExploreBreadcrumb
+              traceItemDataset={TraceItemDataset.REPLAYS}
+              savedQueryName={savedQuery?.name}
+            />
+          ) : (
+            titleContent
+          )}
+        </TopBar.Slot>
+      </Fragment>
+    );
+  }
 
   return (
     <Layout.Header unified>
@@ -82,37 +108,11 @@ function ReplaysHeader({
           />
         ) : null}
 
-        <Layout.Title>
-          {title ? (
-            title
-          ) : (
-            <Fragment>
-              {t('Session Replay')}
-              <PageHeadingQuestionTooltip
-                title={t(
-                  'Video-like reproductions of user sessions so you can visualize repro steps to debug issues faster.'
-                )}
-                docsUrl="https://docs.sentry.io/product/session-replay/"
-              />
-            </Fragment>
-          )}
-        </Layout.Title>
+        <Layout.Title>{titleContent}</Layout.Title>
       </Layout.HeaderContent>
-      {hasPageFrameFeature ? (
-        <TopBar.Slot name="actions">
-          <ReplayIndexTimestampPrefPicker />
-          {showDeadRageClickCards ? (
-            <ReplayWidgetsToggleButton
-              onClick={onToggleWidgets}
-              widgetIsOpen={widgetIsOpen}
-            />
-          ) : null}
-        </TopBar.Slot>
-      ) : (
-        <Layout.HeaderActions>
-          <ReplayIndexTimestampPrefPicker />
-        </Layout.HeaderActions>
-      )}
+      <Layout.HeaderActions>
+        <ReplayIndexTimestampPrefPicker />
+      </Layout.HeaderActions>
     </Layout.Header>
   );
 }
@@ -157,11 +157,7 @@ export default function ReplaysListContainer() {
         <ReplayPreferencesContextProvider prefsStrategy={LocalStorageReplayPreferences}>
           <ReplayQueryParamsProvider>
             <Stack flex={1}>
-              <ReplaysHeader
-                onToggleWidgets={toggleWidgets}
-                showDeadRageClickCards={showDeadRageClickCards}
-                widgetIsOpen={widgetIsOpen}
-              />
+              <ReplaysHeader />
               <PageFiltersContainer>
                 <Layout.Body>
                   <Layout.Main width="full">
