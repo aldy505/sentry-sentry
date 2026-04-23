@@ -122,7 +122,7 @@ jobs:
   upgrade-test:
     runs-on: ubuntu-24.04
     needs:
-      - self-hosted-amd64-
+      - self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -133,6 +133,10 @@ jobs:
       SELF_HOSTED_TESTING_DSN: ${{ vars.SELF_HOSTED_TESTING_DSN }}
     timeout-minutes: 90
     steps:
+      - name: Checkout
+        if: ${{ steps.filter.outputs.sentry == 'true' }}
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Filter out changes
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: filter
@@ -141,10 +145,6 @@ jobs:
             sentry:
               - 'src/sentry/migrations/**'
               - 'src/sentry/**/migrations/**'
-
-      - name: Checkout
-        if: ${{ steps.filter.outputs.sentry == 'true' }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Get latest release tag
         if: ${{ steps.filter.outputs.sentry == 'true' }}
@@ -182,7 +182,6 @@ jobs:
         uses: getsentry/self-hosted@master
         with:
           skip_backup_restore_test: true
-          no_restore_volume_cache: true
           compose_profiles: ${{ matrix.compose_profiles }}
           project_name: |-
             sentry
