@@ -20,6 +20,7 @@ SYSTEM_OPTIONS_ALLOWLIST = (
     # Used during setup before the superadmin role with the options.admin permission is authed
     "system.admin-email"
 )
+MAIL_TLS_SSL_OPTIONS = ("mail.use-tls", "mail.use-ssl")
 
 
 @all_silo_endpoint
@@ -41,6 +42,7 @@ class SystemOptionsEndpoint(Endpoint):
             option_list = options.all()
 
         smtp_disabled = not is_smtp_enabled()
+        disable_mail_tls_ssl_pair = self.__should_disable_mail_tls_ssl_pair()
 
         results = {}
         for k in option_list:
@@ -48,6 +50,8 @@ class SystemOptionsEndpoint(Endpoint):
 
             if smtp_disabled and k.name[:5] == "mail.":
                 disabled_reason, disabled = "smtpDisabled", True
+            elif k.name in MAIL_TLS_SSL_OPTIONS and disable_mail_tls_ssl_pair:
+                disabled_reason, disabled = "diskPriority", True
             elif bool(
                 k.flags & options.FLAG_PRIORITIZE_DISK and settings.SENTRY_OPTIONS.get(k.name)
             ):
@@ -74,6 +78,16 @@ class SystemOptionsEndpoint(Endpoint):
         return (k.flags & options.FLAG_CREDENTIAL) or any(
             [keyword in k.name for keyword in keywords]
         )
+
+    def __should_disable_mail_tls_ssl_pair(self) -> bool:
+        for option_name in MAIL_TLS_SSL_OPTIONS:
+            if not options.is_set_on_disk(option_name):
+                continue
+
+            if settings.SENTRY_OPTIONS[option_name] != options.lookup_key(option_name).default():
+                return True
+
+        return False
 
     def has_permission(self, request: Request) -> bool:
         if settings.SENTRY_SELF_HOSTED and request.user.is_superuser:
