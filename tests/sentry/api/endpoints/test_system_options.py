@@ -84,6 +84,10 @@ class SystemOptionsTest(APITestCase):
             assert response.status_code == 200
             assert response.data["mail.host"]["field"]["disabled"] is True
             assert response.data["mail.host"]["field"]["disabledReason"] == "smtpDisabled"
+            assert response.data["mail.use-tls"]["field"]["disabled"] is True
+            assert response.data["mail.use-tls"]["field"]["disabledReason"] == "smtpDisabled"
+            assert response.data["mail.use-ssl"]["field"]["disabled"] is True
+            assert response.data["mail.use-ssl"]["field"]["disabledReason"] == "smtpDisabled"
 
     def test_put_user_access_forbidden(self) -> None:
         self.login_as(user=self.user, superuser=False)

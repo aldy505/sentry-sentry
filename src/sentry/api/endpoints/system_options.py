@@ -34,6 +34,7 @@ class SystemOptionsEndpoint(Endpoint):
 
     def get(self, request: Request) -> Response:
         query = request.GET.get("query")
+        required_only = query == "is:required"
         if query == "is:required":
             option_list = options.filter(flag=options.FLAG_REQUIRED)
         elif query:
@@ -42,7 +43,7 @@ class SystemOptionsEndpoint(Endpoint):
             option_list = options.all()
 
         smtp_disabled = not is_smtp_enabled()
-        disable_mail_tls_ssl_pair = self.__should_disable_mail_tls_ssl_pair()
+        disable_mail_tls_ssl_pair = required_only and self.__should_disable_mail_tls_ssl_pair()
 
         results = {}
         for k in option_list:
@@ -50,7 +51,9 @@ class SystemOptionsEndpoint(Endpoint):
 
             if k.name in MAIL_TLS_SSL_OPTIONS and disable_mail_tls_ssl_pair:
                 disabled_reason, disabled = "diskPriority", True
-            elif smtp_disabled and k.name[:5] == "mail." and k.name not in MAIL_TLS_SSL_OPTIONS:
+            elif smtp_disabled and k.name[:5] == "mail." and not (
+                required_only and k.name in MAIL_TLS_SSL_OPTIONS
+            ):
                 disabled_reason, disabled = "smtpDisabled", True
             elif bool(
                 k.flags & options.FLAG_PRIORITIZE_DISK and settings.SENTRY_OPTIONS.get(k.name)
