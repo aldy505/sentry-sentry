@@ -51,8 +51,10 @@ class SystemOptionsEndpoint(Endpoint):
 
             if k.name in MAIL_TLS_SSL_OPTIONS and disable_mail_tls_ssl_pair:
                 disabled_reason, disabled = "diskPriority", True
-            elif smtp_disabled and k.name[:5] == "mail." and not (
-                required_only and k.name in MAIL_TLS_SSL_OPTIONS
+            elif (
+                smtp_disabled
+                and k.name[:5] == "mail."
+                and not (required_only and k.name in MAIL_TLS_SSL_OPTIONS)
             ):
                 disabled_reason, disabled = "smtpDisabled", True
             elif bool(
