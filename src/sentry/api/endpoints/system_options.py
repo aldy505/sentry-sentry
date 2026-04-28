@@ -48,10 +48,10 @@ class SystemOptionsEndpoint(Endpoint):
         for k in option_list:
             disabled, disabled_reason = False, None
 
-            if smtp_disabled and k.name[:5] == "mail.":
-                disabled_reason, disabled = "smtpDisabled", True
-            elif k.name in MAIL_TLS_SSL_OPTIONS and disable_mail_tls_ssl_pair:
+            if k.name in MAIL_TLS_SSL_OPTIONS and disable_mail_tls_ssl_pair:
                 disabled_reason, disabled = "diskPriority", True
+            elif smtp_disabled and k.name[:5] == "mail." and k.name not in MAIL_TLS_SSL_OPTIONS:
+                disabled_reason, disabled = "smtpDisabled", True
             elif bool(
                 k.flags & options.FLAG_PRIORITIZE_DISK and settings.SENTRY_OPTIONS.get(k.name)
             ):
