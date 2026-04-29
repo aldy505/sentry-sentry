@@ -14,6 +14,7 @@ jest.mock('@tanstack/react-virtual', () => ({
       getTotalSize: () => count * 48,
       measureElement: jest.fn(),
       measure: jest.fn(),
+      scrollToIndex: jest.fn(),
     };
   },
 }));
@@ -25,8 +26,8 @@ import {
   CMDKAction,
   CommandPaletteProvider,
 } from 'sentry/components/commandPalette/ui/cmdk';
+import {CommandPalette as CommandPaletteModal} from 'sentry/components/commandPalette/ui/commandPalette';
 import {CommandPaletteSlot} from 'sentry/components/commandPalette/ui/commandPaletteSlot';
-import CommandPaletteModal from 'sentry/components/commandPalette/ui/modal';
 import {
   makeCloseButton,
   makeClosableHeader,
