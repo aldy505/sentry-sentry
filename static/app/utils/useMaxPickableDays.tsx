@@ -44,9 +44,9 @@ export function getDefaultMaxPickableDays(
 export function isIncreasedMaxPickableDaysEnabled(
   organization: Organization | null | undefined
 ): boolean {
-  return (
+  return Boolean(
     ConfigStore.get('isSelfHosted') &&
-    organization?.features.includes(INCREASED_MAX_PICKABLE_DAYS_FEATURE)
+      organization?.features.includes(INCREASED_MAX_PICKABLE_DAYS_FEATURE)
   );
 }
 
