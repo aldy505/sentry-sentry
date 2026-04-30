@@ -137,13 +137,7 @@ class SystemOptionsEndpoint(Endpoint):
                             "ip_address": request.META["REMOTE_ADDR"],
                             "user_id": request.user.id,
                             "option_key": k,
-                            "option_value": "[redacted]" if _
-                          
-                          
-                          
-                          
-                          
-                          (option) else v,
+                            "option_value": "[redacted]" if _is_secret(option) else v,
                         },
                     )
             except (TypeError, AssertionError) as e:
